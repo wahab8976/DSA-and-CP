@@ -1,145 +1,106 @@
 /*
-518. Coin Change II     --      https://leetcode.com/problems/coin-change-ii/description/
+322. Coin Change        --      https://leetcode.com/problems/coin-change/description/
 
 You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money.
 
-Return the number of combinations that make up that amount. If that amount of money cannot be made up by any combination of the coins, return 0.
+Return the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return -1.
 
 You may assume that you have an infinite number of each kind of coin.
-
-The answer is guaranteed to fit into a signed 32-bit integer.
 
  
 
 Example 1:
 
-Input: amount = 5, coins = [1,2,5]
-Output: 4
-Explanation: there are four ways to make up the amount:
-5=5
-5=2+2+1
-5=2+1+1+1
-5=1+1+1+1+1
+Input: coins = [1,2,5], amount = 11
+Output: 3
+Explanation: 11 = 5 + 5 + 1
 Example 2:
 
-Input: amount = 3, coins = [2]
-Output: 0
-Explanation: the amount of 3 cannot be made up just with coins of 2.
+Input: coins = [2], amount = 3
+Output: -1
 Example 3:
 
-Input: amount = 10, coins = [10]
-Output: 1
+Input: coins = [1], amount = 0
+Output: 0
  
 
 Constraints:
 
-1 <= coins.length <= 300
-1 <= coins[i] <= 5000
-All the values of coins are unique.
-0 <= amount <= 5000
-
+1 <= coins.length <= 12
+1 <= coins[i] <= 231 - 1
+0 <= amount <= 104
 */
+
 #include<vector>
 using namespace std;
 
 //      Recursive Memoization
 class Solution {
 public:
-    int solve(int amount, int index, vector<int>& coins,vector<vector<int>>& dp) 
+    int solve(vector<int>& coins,int amount,int index,vector<vector<int>>& dp)
     {
-        if (index == 0) 
+        if(index == 0)  // If amount is divisible by coins at 0, number of coins will be amount/coins at 0
         {
-            if (amount % coins[0] == 0) // If total amount is divisible by coins at index 0 then there is one way possible. Eg. amount = 10 arr = [5]
-                return 1;  
+            if(amount % coins[0] == 0) 
+                return amount / coins[0];
             else 
-                return 0;   
+                return 1e9;
         }
 
-        if(dp[index][amount] != -1)     
+        if(dp[index][amount] != -1)
             return dp[index][amount];
 
-        int doNotPick = solve(amount, index-1, coins,dp);       // Skip the coin
+        int doNotPick = 0 + solve(coins,amount,index-1,dp);
+        int pick = 1e9;
 
-        int pick = 0;
-        if (amount >= coins[index])
-            pick = solve(amount - coins[index], index, coins,dp);       // Choose the same coin again
+        if(amount >= coins[index])
+            pick = 1 + solve(coins,amount - coins[index],index,dp);
 
-        return dp[index][amount] = pick + doNotPick; 
-    } 
+        return dp[index][amount] = min(pick,doNotPick);
+    }
 
-    int change(int amount, vector<int>& coins) 
+    int coinChange(vector<int>& coins, int amount) 
     {
         int n = coins.size();
         vector<vector<int>> dp(n,vector<int> (amount+1,-1));
-        return solve(amount, n-1, coins,dp);
+        int ans = solve(coins, amount, n-1, dp);
+        return (ans >= 1e9) ? -1 : ans;
+
     }
 };
 
 
-
-//      Tabulation
-
+// Tabulation
 class Solution {
 public:
-    int change(int amount, vector<int>& coins) 
+    int coinChange(vector<int>& coins, int amount) 
     {
         int n = coins.size();
-        vector<vector<long>> dp(n,vector<long> (amount+1,0));
+        vector<vector<int>> dp(n,vector<int> (amount+1,1e9));
+
+        for(int i = 0; i <= amount;i++)
+        {
+            if(i % coins[0] == 0)
+                dp[0][i] = i / coins[0];
+            else
+                dp[0][i] = 1e9;
+        }
+
+        for(int index = 1; index < n;index++)
+        {
+            for(int am = 0; am <= amount;am++)
+            {
+                int doNotPick = dp[index-1][am];
+                int pick = 1e9;
+                if(am >= coins[index])
+                    pick = 1 + dp[index][am - coins[index]];
+                dp[index][am] = min(pick,doNotPick);
+            }
+        }
         
-        // BaseCase: For each index 0, if amount is divisible by element at 0 of amount, then it is 1 otherwise 0.
-        for(int am = 0; am <= amount;am++)
-        {
-            if(am % coins[0] == 0)
-                dp[0][am] = 1;
-        }
-
-        for(int index = 1;index < n;index++)
-        {
-            for(int am = 0;am <= amount;am++)
-            {
-                int doNotPick = dp[index-1][am]; 
-
-                int pick = 0;
-                if (am >= coins[index])
-                    pick = dp[index][am - coins[index]];
-                    
-                dp[index][am] = long(pick) + long(doNotPick);
-            }
-        }
-        return dp[n-1][amount];
-    }
-};
-
-// Tabulation Space Optimized
-
-class Solution {
-public:
-    int change(int amount, vector<int>& coins) 
-    {
-        int n = coins.size();
-        vector<long> prev(amount+1,0);  // Previous Row
-
-        for(int am = 0; am <= amount;am++)
-        {
-            if(am % coins[0] == 0)
-                prev[am] = 1;
-        }
-
-        for(int index = 1;index < n;index++)
-        {
-            vector<long> current(amount+1,0);   // Current Row
-            for(int am = 0;am <= amount;am++)
-            {
-                int doNotPick = prev[am]; 
-
-                int pick = 0;
-                if (am >= coins[index])
-                    pick = prev[am - coins[index]];
-                    
-                prev[am] = long(pick) + long(doNotPick);
-            }
-            current = prev;     // Make current row as previous
-        }
-        return prev[amount];
+        if(dp[n-1][amount] >= 1e9)
+            return -1;
+        else
+            return dp[n-1][amount];
     }
 };
