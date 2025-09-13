@@ -1,3 +1,9 @@
+
+
+#include<vector>
+using namespace std;
+
+//  Recursive Memoization
 class Solution {
   public:
     int solve(int W,vector<int>& val,vector<int>& wt,int index,vector<vector<int>>& dp)
@@ -10,7 +16,8 @@ class Solution {
                 return 0;
         }
         
-        if(dp[index][W] != -1) return dp[index][W];
+        if(dp[index][W] != -1) 
+            return dp[index][W];
         
         int doNotChoose = solve(W,val,wt,index-1,dp);
         
