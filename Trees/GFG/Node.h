@@ -10,11 +10,11 @@ Constructors are provided to:
 3. Create a node with a value and attach left and right children
 */
 
-struct TreeNode {
+struct Node {
     int data;
-    TreeNode* left;
-    TreeNode* right;
-    TreeNode() : data(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : data(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : data(x), left(left), right(right) {}
+    Node* left;
+    Node* right;
+    Node() : data(0), left(nullptr), right(nullptr) {}
+    Node(int x) : data(x), left(nullptr), right(nullptr) {}
+    Node(int x, Node *left, Node *right) : data(x), left(left), right(right) {}
 };
